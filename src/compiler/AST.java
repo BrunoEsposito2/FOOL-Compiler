@@ -88,7 +88,82 @@ public class AST {
 		@Override
 		public <S,E extends Exception> S accept(BaseASTVisitor<S,E> visitor) throws E {return visitor.visitNode(this);}
 	}
-	
+
+	public static class GreaterEqualNode extends Node{
+		final Node left;
+		final Node right;
+		public GreaterEqualNode(Node left, Node right) {this.left = left; this.right = right;}
+		@Override
+		public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {return visitor.visitNode(this);}
+	}
+
+	public static class LessEqualNode extends Node{
+		final Node left;
+		final Node right;
+		public LessEqualNode(Node left, Node right) {this.left = left; this.right = right;}
+		@Override
+		public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {return visitor.visitNode(this);}
+	}
+
+	public static class NotNode extends Node{
+		final Node arg;
+		public NotNode(Node arg) {
+			this.arg = arg;
+		}
+		@Override
+		public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {return visitor.visitNode(this);}
+	}
+
+	public static class MinusNode extends Node{
+		final int num;
+
+		public MinusNode(int num) {
+			this.num = num;
+		}
+
+		@Override
+		public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {return visitor.visitNode(this);}
+	}
+
+	public static class OrNode extends Node{
+		final Node left;
+		final Node right;
+
+		public OrNode(Node left, Node right) {
+			this.left = left;
+			this.right = right;
+		}
+
+		@Override
+		public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {return visitor.visitNode(this);}
+	}
+
+	public static class AndNode extends Node{
+		final Node left;
+		final Node right;
+
+		public AndNode(Node left, Node right) {
+			this.left = left;
+			this.right = right;
+		}
+
+		@Override
+		public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {return visitor.visitNode(this);}
+	}
+
+	public static class DivNode extends Node {
+		final Node left;
+		final Node right;
+
+		public DivNode(Node left, Node right) {
+			this.left = left;
+			this.right = right;
+		}
+
+		@Override
+		public <S,E extends Exception> S accept(BaseASTVisitor<S,E> visitor) throws E {return visitor.visitNode(this);}
+	}
+
 	public static class TimesNode extends Node {
 		final Node left;
 		final Node right;

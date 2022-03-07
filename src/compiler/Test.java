@@ -6,6 +6,8 @@ import org.antlr.v4.runtime.tree.*;
 import compiler.lib.*;
 import compiler.exc.*;
 import svm.*;
+import visualsvm.SVMLexer;
+import visualsvm.SVMParser;
 
 public class Test {
     public static void main(String[] args) throws Exception {
