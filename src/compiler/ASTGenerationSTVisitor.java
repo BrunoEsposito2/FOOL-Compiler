@@ -56,9 +56,8 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
 		return new ProgNode(visit(c.exp()));
 	}
 
-	/*
 	@Override
-	public Node visitTimes(TimesContext c) {
+	public Node visitTimes(TimesContext c)  {
 		if (print) printVarAndProdName(c);
 		Node n = new TimesNode(visit(c.exp(0)), visit(c.exp(1)));
 		n.setLine(c.TIMES().getSymbol().getLine());		// setLine added
@@ -80,7 +79,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
 		n.setLine(c.EQ().getSymbol().getLine());		
         return n;		
 	}
-*/
+
 	@Override
 	public Node visitVardec(VardecContext c) {
 		if (print) printVarAndProdName(c);
