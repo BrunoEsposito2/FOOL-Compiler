@@ -1,8 +1,10 @@
 package compiler;
 
 import compiler.AST.*;
-import compiler.lib.*;
-import compiler.exc.*;
+import compiler.exc.VoidException;
+import compiler.lib.BaseASTVisitor;
+import compiler.lib.Node;
+
 import static compiler.lib.FOOLlib.*;
 
 public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidException> {
@@ -93,6 +95,117 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
 			l1+":",
 			visit(n.th),
 			l2+":"
+		);
+	}
+
+	@Override
+	public String visitNode(GreaterEqualNode n) {
+		if (print) printNode(n);
+		String l1 = freshLabel();
+		String l2 = freshLabel();
+		return nlJoin(
+				visit(n.right),
+				visit(n.left),
+				"bleq "+l1,
+				"push 0",
+				"b "+l2,
+				l1+":",
+				"push 1",
+				l2+":"
+		);
+	}
+
+	@Override
+	public String visitNode(LessEqualNode n) {
+		if (print) printNode(n);
+		String l1 = freshLabel();
+		String l2 = freshLabel();
+		return nlJoin(
+				visit(n.left),
+				visit(n.right),
+				"bleq "+l1,
+				"push 0",
+				"b "+l2,
+				l1+":",
+				"push 1",
+				l2+":"
+		);
+	}
+
+	@Override
+	public String visitNode(NotNode n) {
+		if (print) printNode(n);
+		return nlJoin(
+				"push 1",
+				visit(n.arg),
+				"sub"
+		);
+	}
+
+	@Override
+	public String visitNode(MinusNode n) {
+		if (print) printNode(n);
+		return nlJoin(
+				visit(n.left),
+				visit(n.right),
+				"sub"
+		);
+	}
+
+	@Override
+	public String visitNode(OrNode n) {
+		if (print) printNode(n);
+		String l1 = freshLabel();
+		String l2 = freshLabel();
+		String l3 = freshLabel();
+		return nlJoin(
+			visit(n.left),
+			"push 0",
+			"beq" + l1,
+			"b "+l3,
+			l1+":",
+			visit(n.right),
+			"push 0",
+			"beq" + l2,
+			"b "+l3,
+			l2+":",
+			"push 0",
+			l3+":",
+			"push 1"
+
+		);
+	}
+
+	@Override
+	public String visitNode(DivNode n) {
+		if (print) printNode(n);
+		return nlJoin(
+				visit(n.left),
+				visit(n.right),
+				"div"
+		);
+	}
+
+	@Override
+	public String visitNode(AndNode n) {
+		if (print) printNode(n);
+		String l1 = freshLabel();
+		String l2 = freshLabel();
+		String l3 = freshLabel();
+		return nlJoin(
+				visit(n.left),
+				"push 1",
+				"beq" + l1,
+				l3,
+				l1+":",
+				visit(n.right),
+				"push 1",
+				"beq" + l2,
+				l3,
+				l2+":",
+				"push 1",
+				l3+":",
+				"push 0"
 		);
 	}
 

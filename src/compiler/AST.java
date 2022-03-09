@@ -115,10 +115,12 @@ public class AST {
 	}
 
 	public static class MinusNode extends Node{
-		final int num;
+		final Node left;
+		final Node right;
 
-		public MinusNode(int num) {
-			this.num = num;
+		public MinusNode(Node left, Node right) {
+			this.left = left;
+			this.right = right;
 		}
 
 		@Override
