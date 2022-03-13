@@ -195,6 +195,44 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode,TypeException
 		return null;
 	}
 
+	@Override
+	public TypeNode visitNode(GreaterEqualNode n) throws TypeException{
+		if (print) printNode(n);
+		TypeNode l = visit(n.left);
+		TypeNode r = visit(n.right);
+		if ( !(isSubtype(l, r) || isSubtype(r, l)) )
+			throw new TypeException("Incompatible types in equal",n.getLine());
+		return new BoolTypeNode();
+	}
+
+	@Override
+	public TypeNode visitNode(LessEqualNode n) throws TypeException{
+		if (print) printNode(n);
+		TypeNode l = visit(n.left);
+		TypeNode r = visit(n.right);
+		if ( !(isSubtype(l, r) || isSubtype(r, l)) )
+			throw new TypeException("Incompatible types in equal",n.getLine());
+		return new BoolTypeNode();
+	}
+
+	@Override
+	public TypeNode visitNode(NotNode n) throws TypeException{
+		if (print) printNode(n);
+		TypeNode arg = visit(n.arg);
+		if (!(isSubtype(visit(n.arg), new BoolTypeNode())))
+			throw new TypeException("Non boolean after NOT",n.getLine());
+		return null;
+	}
+
+	@Override
+	public TypeNode visitNode(MinusNode n) throws TypeException{
+		if (print) printNode(n);
+		if ( !(isSubtype(visit(n.left), new IntTypeNode())
+				&& isSubtype(visit(n.right), new IntTypeNode())) )
+			throw new TypeException("Non integers in sum",n.getLine());
+		return new IntTypeNode();
+	}
+
 // STentry (ritorna campo type)
 
 	@Override
