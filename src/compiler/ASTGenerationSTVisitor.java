@@ -67,17 +67,30 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     @Override
     public Node visitTimesDiv(TimesDivContext c) {
         if (print) printVarAndProdName(c);
-        Node n = new TimesNode(visit(c.exp(0)), visit(c.exp(1)));
-        n.setLine(c.TIMES().getSymbol().getLine());        // setLine added
-        return n;
+        if(c.TIMES()==null){
+            Node n = new DivNode(visit(c.exp(0)), visit(c.exp(1)));
+            n.setLine(c.DIV().getSymbol().getLine());        // setLine added
+            return n;
+        }else{
+            Node n = new TimesNode(visit(c.exp(0)), visit(c.exp(1)));
+            n.setLine(c.TIMES().getSymbol().getLine());        // setLine added
+            return n;
+        }
+
     }
 
     @Override
     public Node visitPlusMinus(PlusMinusContext c) {
         if (print) printVarAndProdName(c);
-        Node n = new PlusNode(visit(c.exp(0)), visit(c.exp(1)));
-        n.setLine(c.PLUS().getSymbol().getLine());
-        return n;
+        if(c.PLUS() == null){
+            Node n = new MinusNode(visit(c.exp(0)), visit(c.exp(1)));
+            n.setLine(c.MINUS().getSymbol().getLine());
+            return n;
+        }else {
+            Node n = new PlusNode(visit(c.exp(0)), visit(c.exp(1)));
+            n.setLine(c.PLUS().getSymbol().getLine());
+            return n;
+        }
     }
 
     @Override
@@ -126,6 +139,28 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
             n.setLine(c.FUN().getSymbol().getLine());
         }
         return n;
+    }
+
+    @Override
+    public Node visitNot(NotContext ctx) {
+        if (print) printVarAndProdName(ctx);
+        Node n = new NotNode(visit(ctx.exp()));
+        n.setLine(ctx.NOT().getSymbol().getLine());
+        return n;
+    }
+
+    @Override
+    public Node visitAndOr(AndOrContext ctx) {
+        if (print) printVarAndProdName(ctx);
+        if(ctx.AND()==null){
+            Node n = new OrNode(visit(ctx.exp(0)), visit(ctx.exp(1)));
+            n.setLine(ctx.OR().getSymbol().getLine());
+            return n;
+        }else{
+            Node n = new AndNode(visit(ctx.exp(0)), visit(ctx.exp(1)));
+            n.setLine(ctx.AND().getSymbol().getLine());
+            return n;
+        }
     }
 
     @Override
