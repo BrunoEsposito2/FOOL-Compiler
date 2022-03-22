@@ -14,7 +14,7 @@ import java.util.List;
 import static compiler.lib.FOOLlib.extractCtxName;
 import static compiler.lib.FOOLlib.lowerizeFirstChar;
 
-public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
+public class ASTGenerationSTVisitor extends compiler.FOOLBaseVisitor<Node> {
 
     String indent;
     public boolean print;
