@@ -409,7 +409,7 @@ public class AST {
         }
 
         @Override
-        public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {
+        public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E, TypeException {
             return visitor.visitNode(this);
         }
     }
@@ -428,7 +428,7 @@ public class AST {
         }
 
         @Override
-        public <S,E extends Exception> S accept(BaseASTVisitor<S,E> visitor) throws E {return visitor.visitNode(this);}
+        public <S,E extends Exception> S accept(BaseASTVisitor<S,E> visitor) throws E, TypeException {return visitor.visitNode(this);}
     }
 
     public static class NewNode extends Node {
@@ -441,7 +441,7 @@ public class AST {
         }
 
         @Override
-        public <S,E extends Exception> S accept(BaseASTVisitor<S,E> visitor) throws E {return visitor.visitNode(this);}
+        public <S,E extends Exception> S accept(BaseASTVisitor<S,E> visitor) throws E, TypeException {return visitor.visitNode(this);}
     }
 
     public static class EmptyNode extends DecNode{
@@ -482,6 +482,6 @@ public class AST {
         }
 
         @Override
-        public <S,E extends Exception> S accept(BaseASTVisitor<S,E> visitor) throws E {return visitor.visitNode(this);}
+        public <S,E extends Exception> S accept(BaseASTVisitor<S,E> visitor) throws E, TypeException {return visitor.visitNode(this);}
     }
 }
