@@ -2,6 +2,7 @@ package compiler;
 
 import java.util.*;
 
+import compiler.exc.TypeException;
 import compiler.lib.*;
 
 public class AST {
@@ -377,6 +378,8 @@ public class AST {
         final List<ParNode> parlist;
         final List<DecNode> declist;
         final Node exp;
+        public int offset;
+        public String label;
 
         MethodNode(String i, TypeNode rt, List<ParNode> pl, List<DecNode> dl, Node e) {
             id = i;
@@ -389,7 +392,7 @@ public class AST {
         void setType(TypeNode t) {type = t;}
 
         @Override
-        public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {
+        public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E, TypeException {
             return visitor.visitNode(this);
         }
     }

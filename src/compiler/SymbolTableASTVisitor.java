@@ -230,7 +230,9 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 
 	@Override
 	public Void visitNode(FieldNode fieldNode) {
-		return super.visitNode(fieldNode);
+		if (print) printNode(fieldNode);
+		visit((fieldNode));
+		return null;
 	}
 
 	@Override

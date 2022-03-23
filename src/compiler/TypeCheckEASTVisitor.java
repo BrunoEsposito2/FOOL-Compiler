@@ -241,7 +241,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new IntTypeNode();
     }
 
-// STentry (ritorna campo type)
+    // STentry (ritorna campo type)
 
     @Override
     public TypeNode visitSTentry(STentry entry) throws TypeException {
