@@ -117,9 +117,8 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
 
     @Override
     public String visitNode(EmptyNode emptyNode) {
-        return nlJoin(
-                "push -1"
-        );
+        if (print) printNode(emptyNode);
+        return "push -1";
     }
 
     @Override
@@ -187,12 +186,29 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(ClassNode classNode) throws TypeException {
         if (print) printNode(classNode, classNode.id);
-        String argCode = null;
+        String methodCode = null;
         var dispatchTable = new ArrayList<String>();
-        for (var method : classNode.methods){
+        for (MethodNode method : classNode.methods){
             visit(method);
-            dispatchTable.add(method.offset,method.label);
+            dispatchTable.add(method.offset, method.label);
         }
+
+        for (String label : dispatchTable) {
+            methodCode = nlJoin(methodCode,
+                            // memorizzo ciascuna etichetta in hp
+                            "push " + label, // metto la label sullo stack
+                            "lhp", // metto sullo stack il valore di hp
+                            "sw", // fa la pop dei due valori inseriti e va a scrivere la label sull'indirizzo puntato da hp
+                            // incremento hp
+                            "lhp",
+                            "push 1",
+                            "add",
+                            "shp");
+        }
+
+        return nlJoin("lhp", // metto il valore di hp sullo stack, cioè il dispatch pointer da ritornare alla fine
+                methodCode // creo sullo heap la dispatch table costruita
+        );
     }
 
     @Override
