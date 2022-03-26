@@ -171,7 +171,7 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void,VoidException> {
 	}
 	
 	@Override
-	public Void visitNode(ArrowTypeNode n) {
+	public Void visitNode(ArrowTypeNode n){
 		printNode(n);
 		for (Node par: n.parlist) visit(par);
 		visit(n.ret,"->"); //marks return type

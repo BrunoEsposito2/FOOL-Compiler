@@ -1,12 +1,13 @@
 package compiler;
 
 import compiler.AST.*;
-import compiler.exc.*;
-import compiler.lib.*;
+import compiler.exc.IncomplException;
+import compiler.exc.TypeException;
+import compiler.lib.BaseEASTVisitor;
+import compiler.lib.Node;
+import compiler.lib.TypeNode;
 
-import java.util.stream.IntStream;
-
-import static compiler.TypeRels.*;
+import static compiler.TypeRels.isSubtype;
 
 //visitNode(n) fa il type checking di un Node n e ritorna:
 //- per una espressione, il suo tipo (oggetto BoolTypeNode o IntTypeNode)
@@ -167,8 +168,8 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         if (print) printNode(n, n.id);
         TypeNode t = visit(n.entry);
         if (t instanceof ArrowTypeNode
-            // OOP extension
-            || t instanceof MethodTypeNode || t instanceof ClassTypeNode)
+                // OOP extension
+                || t instanceof MethodTypeNode || t instanceof ClassTypeNode)
             throw new TypeException("Wrong usage of function identifier " + n.id, n.getLine());
         return t;
     }
@@ -343,8 +344,8 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     }
 
     @Override
-    public TypeNode visitNode(RefTypeNode emptyTypeNode) {
-        if (print) printNode(emptyTypeNode);
+    public TypeNode visitNode(RefTypeNode refTypeNode) {
+        if (print) printNode(refTypeNode);
 
         return null;
     }

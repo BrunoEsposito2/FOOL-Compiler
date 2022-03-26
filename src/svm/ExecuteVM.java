@@ -4,8 +4,8 @@ import visualsvm.SVMParser;
 
 public class ExecuteVM {
     
-    public static final int CODESIZE = 10000;
-    public static final int MEMSIZE = 10000;
+    public static final int CODESIZE = 16000;
+    public static final int MEMSIZE = 16000;
     
     private int[] code;
     private int[] memory = new int[MEMSIZE];
