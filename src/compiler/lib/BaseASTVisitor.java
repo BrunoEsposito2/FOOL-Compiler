@@ -45,8 +45,7 @@ public class BaseASTVisitor<S, E extends Exception> {
             indent = (indent == null) ? "" : indent + "  ";
             indent += mark; //inserts mark
             try {
-                S result = visitByAcc(v);
-                return result;
+                return visitByAcc(v);
             } finally {
                 indent = temp;
             }
@@ -161,48 +160,8 @@ public class BaseASTVisitor<S, E extends Exception> {
         throw new UnimplException();
     }
 
-    public S visitNode(FieldNode fieldNode) throws E {
-        throw new UnimplException();
-    }
-
-    public S visitNode(MethodNode methodNode) throws E {
-        throw new UnimplException();
-    }
-
-    public S visitNode(ClassNode classNode) throws E {
-        throw new UnimplException();
-    }
-
-    public S visitNode(ClassCallNode classCallNode) throws E {
-        throw new UnimplException();
-    }
-
-    public S visitNode(NewNode newNode) throws E {
-        throw new UnimplException();
-    }
-
-    public S visitNode(EmptyNode emptyNode) throws E {
-        throw new UnimplException();
-    }
-
-    public S visitNode(RefTypeNode refTypeNode) throws E {
-        throw new UnimplException();
-    }
-
-    public S visitNode(EmptyTypeNode emptyTypeNode) throws E {
-        throw new UnimplException();
-    }
-
-    public S visitNode(ClassTypeNode classTypeNode) throws E {
-        throw new UnimplException();
-    }
-
-    public S visitNode(MethodTypeNode methodTypeNode) throws E {
-        throw new UnimplException();
-    }
-
     // OBJECT-ORIENTED EXTENSION
-	/*
+
 	public S visitNode(ClassNode n) throws E {throw new UnimplException();}
 	public S visitNode(FieldNode node) throws E {throw new UnimplException();}
 	public S visitNode(MethodNode n) throws E {throw new UnimplException();}
@@ -214,5 +173,5 @@ public class BaseASTVisitor<S, E extends Exception> {
 	public S visitNode(MethodTypeNode n) throws E {throw new UnimplException();}
 	public S visitNode(RefTypeNode n) throws E {throw new UnimplException();}
 	public S visitNode(EmptyTypeNode n) throws E {throw new UnimplException();}
-	*/
+
 }
