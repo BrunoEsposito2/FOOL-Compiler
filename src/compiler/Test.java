@@ -12,8 +12,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import svm.ExecuteVM;
 import svm.SVMLexer;
 import svm.SVMParser;
-import compiler.FOOLLexer;
 import compiler.FOOLParser;
+import compiler.FOOLLexer;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -77,7 +77,6 @@ public class Test {
     	SVMLexer lexerASM = new SVMLexer(charsASM);
     	CommonTokenStream tokensASM = new CommonTokenStream(lexerASM);
     	SVMParser parserASM = new SVMParser(tokensASM);
-		/////FINO A QUA TUTTO OKKKKKK
     	parserASM.assembly();
 
     	// needed only for debug
@@ -86,7 +85,8 @@ public class Test {
 
     	System.out.println("Running generated code via Stack Virtual Machine.");
     	ExecuteVM vm = new ExecuteVM(parserASM.code);
-    	vm.cpu();
+		/////FINO A QUA TUTTO OKKKKKK
+		vm.cpu();
 
     }
 }
