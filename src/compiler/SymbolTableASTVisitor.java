@@ -268,61 +268,6 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 	}
 
 	@Override
-	public Void visitNode(ClassNode classNode) {
-		if (print) printNode(classNode);
-		var symbolTable = symTable.get(0);
-		localDeclaration = new HashSet<>();
-		var type = new ClassTypeNode(new ArrayList<>(), new ArrayList<>());
-		var virtualTable = new HashMap<String, STentry>();
-
-		classNode.type = type;
-		var entry = new STentry(0, type, decOffset--);
-		if (symbolTable.put(classNode.id, entry) != null) {
-			System.out.format("Class %s at line %d has already been declared!", classNode.id, classNode.getLine());
-			stErrors += 1;
-		}
-
-		symTable.add(virtualTable);
-		classTable.put(classNode.id, virtualTable);
-
-		nestingLevel += 1;
-		//Fields handling
-		var fieldOffset = -(type.allFields.size()) - 1;
-		for(var field : classNode.fields) {
-			if(localDeclaration.contains(field.id)){
-				System.out.format("Field %s at line %d has already been declared!", field.id, field.getLine());
-				stErrors += 1;
-			}else{
-				localDeclaration.add(field.id);
-				virtualTable.put(field.id, new STentry(nestingLevel, field.getType(), field.offset));
-				field.offset = fieldOffset;
-				fieldOffset -= 1;
-				type.allFields.add(field.getType());
-			}
-		}
-
-		var previousNestingLevelDecOffset = decOffset;
-		decOffset = type.allMethods.size();
-
-		//Methods handling
-		for(var method : classNode.methods){
-			if(localDeclaration.contains(method.id)){
-				System.out.format("Method %s at line %d has already been declared!", method.id, method.getLine());
-				stErrors += 1;
-			}else{
-				localDeclaration.add(method.id);
-				visit(method);
-				virtualTable.put(method.id, new STentry(nestingLevel, method.getType(), decOffset));
-				decOffset += 1;
-				type.allMethods.add(((MethodTypeNode)method.getType()).fun);
-			}
-		}
-		symTable.remove(nestingLevel--);
-		decOffset = previousNestingLevelDecOffset;
-		return null;
-	}
-
-	@Override
 	public Void visitNode(ClassCallNode classCallNode) {
 		if (print) printNode(classCallNode);
 
@@ -360,6 +305,72 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 	}
 
 	@Override
+	public Void visitNode(ClassNode classNode) {
+		if (print) printNode(classNode);
+
+		localDeclaration = new HashSet<>();
+		Map<String, STentry> symbolTable = symTable.get(0);
+		ClassTypeNode type = new ClassTypeNode(new ArrayList<>(), new ArrayList<>());
+		Map<String, STentry> virtualTable = new HashMap<>();
+
+
+		// creo la STEntry e setto nel nodo il suo tipo
+		classNode.type = type;
+		STentry entry = new STentry(0, type, decOffset--);
+
+		if (symbolTable.put(classNode.id, entry) != null) {
+			System.out.println("Class id " + classNode.id + " at line "+ classNode.getLine() +" already declared");
+			stErrors++;
+		}
+
+		// inserisco la virtual table
+		symTable.add(virtualTable);
+		classTable.put(classNode.id, virtualTable);
+
+		// livello dentro la dichiarazione della classe
+		nestingLevel++;
+
+		// campi
+		int fieldOffset = -(type.allFields.size()) -1;
+		for (FieldNode field : classNode.fields){
+			if (localDeclaration.contains(field.id)){ // controllo dichiarazione multipla
+				System.out.println("Field id " + field.id + " at line "+ classNode.getLine() +" already declared in this scope");
+				stErrors++;
+			} else {
+				localDeclaration.add(field.id);
+				virtualTable.put(field.id, new STentry(nestingLevel, field.getType(), fieldOffset));
+				field.offset = fieldOffset;
+				fieldOffset--;
+				type.allFields.add(field.getType());
+			}
+		}
+
+		int prevNLDecOffset = decOffset; // stores counter for offset of declarations at previous nesting level
+		decOffset=type.allMethods.size();
+
+		// metodi
+		for (MethodNode method : classNode.methods){
+			if (localDeclaration.contains(method.id)){
+				System.out.println("Method id " + classNode.id + " at line "+ classNode.getLine() +" already declared in this scope");
+				stErrors++;
+			} else {
+				localDeclaration.add(method.id);
+				visit(method);
+				virtualTable.put(method.id, new STentry(nestingLevel, method.getType(), decOffset));
+				method.offset = decOffset;
+				decOffset++;
+				type.allMethods.add(((MethodTypeNode) method.getType()).fun);
+			}
+		}
+
+		//rimuovere la hashmap corrente poiche' esco dallo scope
+		symTable.remove(nestingLevel--);
+		decOffset=prevNLDecOffset; // restores counter for offset of declarations at previous nesting level
+
+		return null;
+	}
+
+	@Override
 	public Void visitNode(NewNode newNode) {
 		if(print) printNode(newNode);
 
@@ -379,6 +390,16 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 		}
 
 		newNode.arglist.forEach(this::visit);
+
+		return null;
+	}
+
+	@Override
+	public Void visitNode(ArrowTypeNode arrowTypeNode) {
+		if (print) printNode(arrowTypeNode);
+
+		for (Node par : arrowTypeNode.parlist)
+			visit(par);
 
 		return null;
 	}
