@@ -9,10 +9,13 @@ import svm.ExecuteVM;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static compiler.lib.FOOLlib.*;
 
 public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidException> {
+
+    List<List<String>> dispatchTables = new ArrayList<>();
 
     CodeGenerationASTVisitor() {
     }
@@ -73,142 +76,6 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                 )
         );
         return "push " + funl;
-    }
-
-    @Override
-    public String visitNode(MethodNode methodNode) {
-        if (print) printNode(methodNode, methodNode.id);
-
-        String declCode = null, popDecl = null, popParl = null;
-        for (Node dec : methodNode.declist) {
-            declCode = nlJoin(declCode, visit(dec));
-            popDecl = nlJoin(popDecl, "pop");
-        }
-        for (int i = 0; i < methodNode.parlist.size(); i++) popParl = nlJoin(popParl, "pop");
-        String funl = freshFunLabel();
-        putCode(
-                nlJoin(
-                        funl + ":",
-                        "cfp", // set $fp to $sp value
-                        "lra", // load $ra value
-                        declCode, // generate code for local declarations (they use the new $fp!!!)
-                        visit(methodNode.exp), // generate code for function body expression
-                        "stm", // set $tm to popped value (function result)
-                        popDecl, // remove local declarations from stack
-                        "sra", // set $ra to popped value
-                        "pop", // remove Access Link from stack
-                        popParl, // remove parameters from stack
-                        "sfp", // set $fp to popped value (Control Link)
-                        "ltm", // load $tm value (function result)
-                        "lra", // load $ra value
-                        "js"  // jump to to popped address
-                )
-        );
-        return null;
-    }
-
-    /*
-    @Override
-    public String visitNode(FieldNode fieldNode) {
-        if (print) printNode(fieldNode, fieldNode.id);
-        return visit(fieldNode);
-    }
-    */
-
-    @Override
-    public String visitNode(EmptyNode emptyNode) {
-        if (print) printNode(emptyNode);
-        return "push -1";
-    }
-
-    @Override
-    public String visitNode(ClassCallNode classCallNode) {
-        if (print) printNode(classCallNode, classCallNode.objectId);
-        String argCode = null, getAR = null;
-        for (int i = classCallNode.arglist.size() - 1; i >= 0; i--)
-            argCode = nlJoin(argCode, visit(classCallNode.arglist.get(i)));
-        for (int i = 0; i < classCallNode.nl - classCallNode.entry.nl; i++) getAR = nlJoin(getAR, "lw");
-        return nlJoin(
-                "lfp", // load Control Link (pointer to frame of function "id" caller)
-                argCode, // generate code for argument expressions in reversed order
-                "lfp",  // retrieve address of frame containing "id" declaration
-                getAR, // by following the static chain (of Access Links)
-                "add", // compute address of "id" declaration
-                "lw",
-                "stm", // set $tm to popped value (with the aim of duplicating top of stack)
-                "ltm", // load Access Link (pointer to frame of function "id" declaration)
-                "ltm", // duplicate top of stack
-                "lw",
-                "push " + classCallNode.methodEntry.offset, "add", // compute address of method declaration
-                "lw", // load address of "id" function
-                "js"  // jump to popped address (saving address of subsequent instruction in $ra)
-        );
-    }
-
-    @Override
-    public String visitNode(NewNode newNode) {
-        if (print) printNode(newNode, newNode.classId);
-        String argCode = null;
-        for (Node arg : newNode.arglist) {
-            argCode = nlJoin(argCode, visit(arg));
-        }
-
-        // tolgo gli argomenti dallo stack uno alla volta e li metto nello heap
-        for (Node arg : newNode.arglist) {
-            argCode = nlJoin(argCode,
-                    "lhp", // metto sullo stack il valore di hp
-                    "sw", // fa la pop dei due valori e va a scrivere all'indirizzo puntato da hp il valore sullo stack
-                    // incremento il valore di hp
-                    "lhp",
-                    "push 1",
-                    "add",
-                    "shp");
-        }
-
-        return nlJoin(argCode,
-                "push " + ExecuteVM.MEMSIZE,
-                "push " + newNode.entry.offset,
-                "add", // calcoliamo offset
-                "lw", // recupero dispatch pointer
-                "lhp",
-                "sw", // scrivo ad indirizzo hp il dispatch pointer
-                "lhp", // carico sullo stack l'object pointer da ritornare
-                // incremento hp
-                "lhp",
-                "push 1",
-                "add",
-                "shp"
-        );
-
-    }
-
-
-    @Override
-    public String visitNode(ClassNode classNode) {
-        if (print) printNode(classNode, classNode.id);
-        String methodCode = null;
-        var dispatchTable = new ArrayList<String>();
-        for (MethodNode method : classNode.methods) {
-            visit(method);
-            dispatchTable.add(method.offset, method.label);
-        }
-
-        for (String label : dispatchTable) {
-            methodCode = nlJoin(methodCode,
-                    // memorizzo ciascuna etichetta in hp
-                    "push " + label, // metto la label sullo stack
-                    "lhp", // metto sullo stack il valore di hp
-                    "sw", // fa la pop dei due valori inseriti e va a scrivere la label sull'indirizzo puntato da hp
-                    // incremento hp
-                    "lhp",
-                    "push 1",
-                    "add",
-                    "shp");
-        }
-
-        return nlJoin("lhp", // metto il valore di hp sullo stack, cioè il dispatch pointer da ritornare alla fine
-                methodCode // creo sullo heap la dispatch table costruita
-        );
     }
 
     @Override
@@ -392,40 +259,6 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     }
 
     @Override
-    public String visitNode(CallNode n) {
-        if (print) printNode(n, n.id);
-        String argCode = null, getAR = null;
-        for (int i = n.arglist.size() - 1; i >= 0; i--) argCode = nlJoin(argCode, visit(n.arglist.get(i)));
-        for (int i = 0; i < n.nl - n.entry.nl; i++) getAR = nlJoin(getAR, "lw");
-        String code = nlJoin(
-                "lfp", // load Control Link (pointer to frame of function "id" caller)
-                argCode, // generate code for argument expressions in reversed order
-                "lfp", getAR, // retrieve address of frame containing "id" declaration
-                // by following the static chain (of Access Links)
-                "stm", // set $tm to popped value (with the aim of duplicating top of stack)
-                "ltm", // load Access Link (pointer to frame of function "id" declaration)
-                "ltm" // duplicate top of stack
-        );
-        if (n.entry.type instanceof MethodTypeNode) {
-            return nlJoin(
-                    code,
-                    "lw", // load address of class
-                    "push " + n.entry.offset, "add", // compute address of method declaration
-                    "lw", // load address of "id" method
-                    "js"  // jump to popped address (saving address of subsequent instruction in $ra)
-            );
-        } else {
-            return nlJoin(
-                    code,
-                    "push " + n.entry.offset, "add", // compute address of "id" declaration
-                    "lw", // load address of "id" function
-                    "js"  // jump to popped address (saving address of subsequent instruction in $ra)
-            );
-        }
-
-    }
-
-    @Override
     public String visitNode(IdNode n) {
         if (print) printNode(n, n.id);
         String getAR = null;
@@ -449,5 +282,181 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     public String visitNode(IntNode n) {
         if (print) printNode(n, n.val.toString());
         return "push " + n.val;
+    }
+
+    //OOP
+
+    @Override
+    public String visitNode(ClassNode classNode) {
+        if (print) printNode(classNode, classNode.id);
+        String methodCode = null;
+        var dispatchTable = new ArrayList<String>();
+        for (MethodNode method : classNode.methods) {
+            visit(method);
+            dispatchTable.add(method.offset, method.label);
+        }
+
+        for (String label : dispatchTable) {
+            methodCode = nlJoin(methodCode,
+                    // memorizzo ciascuna etichetta in hp
+                    "push " + label, // metto la label sullo stack
+                    "lhp", // metto sullo stack il valore di hp
+                    "sw", // fa la pop dei due valori inseriti e va a scrivere la label sull'indirizzo puntato da hp
+                    // incremento hp
+                    "lhp",
+                    "push 1",
+                    "add",
+                    "shp");
+        }
+
+        return nlJoin("lhp", // metto il valore di hp sullo stack, cioè il dispatch pointer da ritornare alla fine
+                methodCode // creo sullo heap la dispatch table costruita
+        );
+    }
+
+    @Override
+    public String visitNode(MethodNode methodNode) {
+        if (print) printNode(methodNode, methodNode.id);
+        String declCode = null;
+        String popDecl = null;
+        String popParl = null;
+        for (Node dec : methodNode.declist) {
+            declCode = nlJoin(declCode, visit(dec));
+            popDecl = nlJoin(popDecl, "pop");
+        }
+        for (int i = 0; i < methodNode.parlist.size(); i++){
+            popParl = nlJoin(popParl, "pop");
+        }
+        String freshFunLabel = freshFunLabel();
+        methodNode.label = freshFunLabel;
+        putCode(
+                nlJoin(
+                        freshFunLabel + ":",
+                        "cfp", // set $fp to $sp value
+                        "lra", // load $ra value
+                        declCode, // generate code for local declarations (they use the new $fp!!!)
+                        visit(methodNode.exp), // generate code for function body expression
+                        "stm", // set $tm to popped value (function result)
+                        popDecl, // remove local declarations from stack
+                        "sra", // set $ra to popped value
+                        "pop", // remove Access Link from stack
+                        popParl, // remove parameters from stack
+                        "sfp", // set $fp to popped value (Control Link)
+                        "ltm", // load $tm value (function result)
+                        "lra", // load $ra value
+                        "js"  // jump to to popped address
+                )
+        );
+        return null;
+    }
+
+    @Override
+    public String visitNode(ClassCallNode classCallNode) {
+        if (print) printNode(classCallNode, classCallNode.objectId);
+        String argCode = null;
+        String getAR = null;
+        for (int i = classCallNode.arglist.size() - 1; i >= 0; i--){
+            argCode = nlJoin(argCode, visit(classCallNode.arglist.get(i)));
+        }
+        for (int i = 0; i < classCallNode.nl - classCallNode.entry.nl; i++){
+            getAR = nlJoin(getAR, "lw");
+        }
+        return nlJoin(
+                "lfp", // load Control Link (pointer to frame of function "id" caller)
+                argCode, // generate code for argument expressions in reversed order
+                "lfp",  // retrieve address of frame containing "id" declaration
+                getAR, // by following the static chain (of Access Links)
+                "add", // compute address of "id" declaration
+                "lw",
+                "stm", // set $tm to popped value (with the aim of duplicating top of stack)
+                "ltm", // load Access Link (pointer to frame of function "id" declaration)
+                "ltm", // duplicate top of stack
+                "lw",
+                "push " + classCallNode.methodEntry.offset, "add", // compute address of method declaration
+                "lw", // load address of "id" function
+                "js"  // jump to popped address (saving address of subsequent instruction in $ra)
+        );
+    }
+
+    @Override
+    public String visitNode(CallNode callNode) {
+        if (print) printNode(callNode, callNode.id);
+        String argCode = null;
+        String getAR = null;
+        for (int i = callNode.arglist.size() - 1; i >= 0; i--){
+            argCode = nlJoin(argCode, visit(callNode.arglist.get(i)));
+        }
+        for (int i = 0; i < callNode.nl - callNode.entry.nl; i++){
+            getAR = nlJoin(getAR, "lw");
+        }
+        String code = nlJoin(
+                "lfp", // load Control Link (pointer to frame of function "id" caller)
+                argCode, // generate code for argument expressions in reversed order
+                "lfp", getAR, // retrieve address of frame containing "id" declaration
+                // by following the static chain (of Access Links)
+                "stm", // set $tm to popped value (with the aim of duplicating top of stack)
+                "ltm", // load Access Link (pointer to frame of function "id" declaration)
+                "ltm" // duplicate top of stack
+        );
+        if (callNode.entry.type instanceof MethodTypeNode) {
+            return nlJoin(
+                    code,
+                    "lw", // load address of class
+                    "push " + callNode.entry.offset, "add", // compute address of method declaration
+                    "lw", // load address of "id" method
+                    "js"  // jump to popped address (saving address of subsequent instruction in $ra)
+            );
+        } else {
+            return nlJoin(
+                    code,
+                    "push " + callNode.entry.offset, "add", // compute address of "id" declaration
+                    "lw", // load address of "id" function
+                    "js"  // jump to popped address (saving address of subsequent instruction in $ra)
+            );
+        }
+    }
+
+
+    @Override
+    public String visitNode(EmptyNode emptyNode) {
+        if (print) printNode(emptyNode);
+        return "push -1";
+    }
+
+    @Override
+    public String visitNode(NewNode newNode) {
+        if (print) printNode(newNode, newNode.classId);
+        String argCode = null;
+        for (Node arg : newNode.arglist) {
+            argCode = nlJoin(argCode, visit(arg));
+        }
+
+        // tolgo gli argomenti dallo stack uno alla volta e li metto nello heap
+        for (Node arg : newNode.arglist) {
+            argCode = nlJoin(argCode,
+                    "lhp", // metto sullo stack il valore di hp
+                    "sw", // fa la pop dei due valori e va a scrivere all'indirizzo puntato da hp il valore sullo stack
+                    // incremento il valore di hp
+                    "lhp",
+                    "push 1",
+                    "add",
+                    "shp");
+        }
+
+        return nlJoin(argCode,
+                "push " + ExecuteVM.MEMSIZE,
+                "push " + newNode.entry.offset,
+                "add", // calcoliamo offset
+                "lw", // recupero dispatch pointer
+                "lhp",
+                "sw", // scrivo ad indirizzo hp il dispatch pointer
+                "lhp", // carico sullo stack l'object pointer da ritornare
+                // incremento hp
+                "lhp",
+                "push 1",
+                "add",
+                "shp"
+        );
+
     }
 }

@@ -235,13 +235,15 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 		return null;
 	}
 
+	//OOP
+
 	@Override
 	public Void visitNode(MethodNode methodNode) {
 		if (print) printNode(methodNode);
 
 		var symbolTable = symTable.get(nestingLevel);
 		var parameters = new ArrayList<TypeNode>();
-		methodNode.parlist.stream().map(DecNode::getType).forEach(parameters::add);
+		methodNode.parlist.stream().map(ParNode::getType).forEach(parameters::add);
 		var methodType = new MethodTypeNode(new ArrowTypeNode(parameters, methodNode.retType));
 		methodNode.setType(methodType);
 
@@ -280,8 +282,8 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 			stErrors += 1;
 		}
 
-		classTable.put(classNode.id, virtualTable);
 		symTable.add(virtualTable);
+		classTable.put(classNode.id, virtualTable);
 
 		nestingLevel += 1;
 		//Fields handling
@@ -292,8 +294,8 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 				stErrors += 1;
 			}else{
 				localDeclaration.add(field.id);
-				field.offset = fieldOffset;
 				virtualTable.put(field.id, new STentry(nestingLevel, field.getType(), field.offset));
+				field.offset = fieldOffset;
 				fieldOffset -= 1;
 				type.allFields.add(field.getType());
 			}
