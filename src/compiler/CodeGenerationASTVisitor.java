@@ -55,7 +55,9 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
             declCode = nlJoin(declCode, visit(dec));
             popDecl = nlJoin(popDecl, "pop");
         }
-        for (int i = 0; i < n.parlist.size(); i++) popParl = nlJoin(popParl, "pop");
+        for (int i = 0; i < n.parlist.size(); i++)
+            popParl = nlJoin(popParl, "pop");
+
         String funl = freshFunLabel();
         putCode(
                 nlJoin(
@@ -147,10 +149,17 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(NotNode n) {
         if (print) printNode(n);
+        String l1 = freshLabel();
+        String l2 = freshLabel();
         return nlJoin(
-                "push 1",
                 visit(n.arg),
-                "sub"
+                "push 1",
+                "beq " + l1,
+                "push 1",
+                "b " + l2,
+                l1 + ":",
+                "push 0",
+                l2 + ":"
         );
     }
 
@@ -262,7 +271,9 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     public String visitNode(IdNode n) {
         if (print) printNode(n, n.id);
         String getAR = null;
-        for (int i = 0; i < n.nl - n.entry.nl; i++) getAR = nlJoin(getAR, "lw");
+        for (int i = 0; i < n.nl - n.entry.nl; i++)
+            getAR = nlJoin(getAR, "lw");
+
         return nlJoin(
                 "lfp", getAR, // retrieve address of frame containing "id" declaration
                 // by following the static chain (of Access Links)
@@ -295,6 +306,8 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
             visit(method);
             dispatchTable.add(method.offset, method.label);
         }
+
+        dispatchTables.add(dispatchTable);
 
         for (String label : dispatchTable) {
             methodCode = nlJoin(methodCode,
@@ -352,7 +365,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
 
     @Override
     public String visitNode(ClassCallNode classCallNode) {
-        if (print) printNode(classCallNode, classCallNode.objectId);
+        if (print) printNode(classCallNode, classCallNode.objectId + "." + classCallNode.methodId);
         String argCode = null;
         String getAR = null;
         for (int i = classCallNode.arglist.size() - 1; i >= 0; i--){
@@ -366,13 +379,15 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                 argCode, // generate code for argument expressions in reversed order
                 "lfp",  // retrieve address of frame containing "id" declaration
                 getAR, // by following the static chain (of Access Links)
+                "push " + classCallNode.entry.offset,
                 "add", // compute address of "id" declaration
                 "lw",
                 "stm", // set $tm to popped value (with the aim of duplicating top of stack)
                 "ltm", // load Access Link (pointer to frame of function "id" declaration)
                 "ltm", // duplicate top of stack
                 "lw",
-                "push " + classCallNode.methodEntry.offset, "add", // compute address of method declaration
+                "push " + classCallNode.methodEntry.offset,
+                "add", // compute address of method declaration
                 "lw", // load address of "id" function
                 "js"  // jump to popped address (saving address of subsequent instruction in $ra)
         );
