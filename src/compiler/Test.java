@@ -1,18 +1,25 @@
 package compiler;
 
-import java.io.*;
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.*;
-import compiler.lib.*;
-import compiler.exc.*;
-import svm.*;
-import visualsvm.SVMLexer;
-import visualsvm.SVMParser;
+import compiler.exc.IncomplException;
+import compiler.exc.TypeException;
+import compiler.lib.FOOLlib;
+import compiler.lib.Node;
+import compiler.lib.TypeNode;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+import svm.ExecuteVM;
+import svm.SVMLexer;
+import svm.SVMParser;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 
 public class Test {
     public static void main(String[] args) throws Exception {
    			
-    	String fileName = "prova.fool";
+    	String fileName = "quicksort.fool";
 
     	CharStream chars = CharStreams.fromFileName(fileName);
     	FOOLLexer lexer = new FOOLLexer(chars);
@@ -57,7 +64,7 @@ public class Test {
 		if ( frontEndErrors > 0) System.exit(1);   
 
     	System.out.println("Generating code.");
-    	String code = new CodeGenerationASTVisitor().visit(ast);        
+    	String code = new CodeGenerationASTVisitor().visit(ast);
     	BufferedWriter out = new BufferedWriter(new FileWriter(fileName+".asm")); 
     	out.write(code);
     	out.close(); 
@@ -68,7 +75,7 @@ public class Test {
     	SVMLexer lexerASM = new SVMLexer(charsASM);
     	CommonTokenStream tokensASM = new CommonTokenStream(lexerASM);
     	SVMParser parserASM = new SVMParser(tokensASM);
-
+		/////FINO A QUA TUTTO OKKKKKK
     	parserASM.assembly();
 
     	// needed only for debug
