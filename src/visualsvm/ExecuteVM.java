@@ -1,5 +1,7 @@
 package visualsvm;
 
+import svm.SVMParser;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
