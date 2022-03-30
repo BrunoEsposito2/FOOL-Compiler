@@ -12,6 +12,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import svm.ExecuteVM;
 import svm.SVMLexer;
 import svm.SVMParser;
+import compiler.FOOLLexer;
+import compiler.FOOLParser;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
