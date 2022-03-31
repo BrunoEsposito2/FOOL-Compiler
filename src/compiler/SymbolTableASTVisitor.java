@@ -12,9 +12,9 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 	private List<Map<String, STentry>> symTable = new ArrayList<>();
 	private Map<String, Map<String, STentry>> classTable = new HashMap<>();
 	private HashSet<String> localDeclaration;
-	private int nestingLevel=0; // current nesting level
-	private int decOffset=-2; // counter for offset of local declarations at current nesting level 
-	int stErrors=0;
+	private int nestingLevel = 0; // current nesting level
+	private int decOffset = -2; // counter for offset of local declarations at current nesting level
+	int stErrors = 0;
 
 	SymbolTableASTVisitor() {}
 	SymbolTableASTVisitor(boolean debug) {super(debug);} // enables print for debugging
@@ -51,7 +51,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 		Map<String, STentry> hm = symTable.get(nestingLevel);
 		List<TypeNode> parTypes = new ArrayList<>();  
 		for (ParNode par : n.parlist) parTypes.add(par.getType()); 
-		STentry entry = new STentry(nestingLevel, new ArrowTypeNode(parTypes,n.retType),decOffset--);
+		STentry entry = new STentry(nestingLevel, new ArrowTypeNode(parTypes,n.retType), decOffset--);
 		//inserimento di ID nella symtable
 		if (hm.put(n.id, entry) != null) {
 			System.out.println("Fun id " + n.id + " at line "+ n.getLine() +" already declared");
@@ -61,20 +61,20 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 		nestingLevel++;
 		Map<String, STentry> hmn = new HashMap<>();
 		symTable.add(hmn);
-		int prevNLDecOffset=decOffset; // stores counter for offset of declarations at previous nesting level 
-		decOffset=-2;
+		int prevNLDecOffset = decOffset; // stores counter for offset of declarations at previous nesting level
+		decOffset = -2;
 		
-		int parOffset=1;
+		int parOffset = 1;
 		for (ParNode par : n.parlist)
 			if (hmn.put(par.id, new STentry(nestingLevel,par.getType(),parOffset++)) != null) {
 				System.out.println("Par id " + par.id + " at line "+ n.getLine() +" already declared");
 				stErrors++;
 			}
-		for (Node dec : n.declist) visit(dec);
+		n.declist.forEach(this::visit);
 		visit(n.exp);
 		//rimuovere la hashmap corrente poiche' esco dallo scope               
 		symTable.remove(nestingLevel--);
-		decOffset=prevNLDecOffset; // restores counter for offset of declarations at previous nesting level 
+		decOffset = prevNLDecOffset; // restores counter for offset of declarations at previous nesting level
 		return null;
 	}
 	
@@ -346,7 +346,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 		}
 
 		int prevNLDecOffset = decOffset; // stores counter for offset of declarations at previous nesting level
-		decOffset=type.allMethods.size();
+		decOffset = type.allMethods.size();
 
 		// metodi
 		for (MethodNode method : classNode.methods){
@@ -365,7 +365,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 
 		//rimuovere la hashmap corrente poiche' esco dallo scope
 		symTable.remove(nestingLevel--);
-		decOffset=prevNLDecOffset; // restores counter for offset of declarations at previous nesting level
+		decOffset = prevNLDecOffset; // restores counter for offset of declarations at previous nesting level
 
 		return null;
 	}
@@ -398,8 +398,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
 	public Void visitNode(ArrowTypeNode arrowTypeNode) {
 		if (print) printNode(arrowTypeNode);
 
-		for (Node par : arrowTypeNode.parlist)
-			visit(par);
+		arrowTypeNode.parlist.forEach(this::visit);
 
 		return null;
 	}
