@@ -86,8 +86,10 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
             throw new TypeException("Non boolean condition in if", n.getLine());
         TypeNode t = visit(n.th);
         TypeNode e = visit(n.el);
-        if (isSubtype(t, e)) return e;
-        if (isSubtype(e, t)) return t;
+        if (isSubtype(t, e))
+            return e;
+        if (isSubtype(e, t))
+            return t;
         throw new TypeException("Incompatible types in then-else branches", n.getLine());
     }
 
@@ -191,7 +193,8 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     @Override
     public TypeNode visitNode(ArrowTypeNode n) throws TypeException {
         if (print) printNode(n);
-        for (Node par : n.parlist) visit(par);
+        for (Node par : n.parlist)
+            visit(par);
         visit(n.ret, "->"); //marks return type
         return null;
     }
