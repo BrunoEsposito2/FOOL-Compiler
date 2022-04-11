@@ -15,7 +15,7 @@ import static compiler.lib.FOOLlib.*;
 
 public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidException> {
 
-    List<List<String>> dispatchTables = new ArrayList<>();
+    private List<List<String>> dispatchTables = new ArrayList<>();
 
     CodeGenerationASTVisitor() {
     }
@@ -300,8 +300,17 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(ClassNode classNode) {
         if (print) printNode(classNode, classNode.id);
-        String methodCode = null;
         var dispatchTable = new ArrayList<String>();
+        String methodCode = null;
+
+        //if(classNode.superID != null){}MANCA EREDITA DEI METODI
+        //
+        //dispatchTables.forEach(l->{
+        //    ??come faccio a trovare la List<String> giusta???
+        //});
+        //
+        //
+
         for (MethodNode method : classNode.methods) {
             visit(method);
             dispatchTable.add(method.offset, method.label);
