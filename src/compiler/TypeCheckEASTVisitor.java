@@ -294,7 +294,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         if (print)
             printNode(classNode, classNode.id + ((classNode.superID == null) ? "" : "extends " + classNode.superID));
         if (classNode.superID !=null) {
-            superTypeMap.put(classNode.id, classNode.superID);
+            superType.put(classNode.id, classNode.superID);
             ClassTypeNode type = classNode.type;
             ClassTypeNode parentCT = (ClassTypeNode) classNode.superEntry.type;
 
