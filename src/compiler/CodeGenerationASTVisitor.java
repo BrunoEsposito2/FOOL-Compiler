@@ -1,14 +1,12 @@
 package compiler;
 
 import compiler.AST.*;
-import compiler.exc.TypeException;
 import compiler.exc.VoidException;
 import compiler.lib.BaseASTVisitor;
 import compiler.lib.Node;
 import svm.ExecuteVM;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import static compiler.lib.FOOLlib.*;
@@ -300,25 +298,27 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(ClassNode classNode) {
         if (print) printNode(classNode, classNode.id);
-        var dispatchTable = new ArrayList<String>();
+        List<String> dispatchTableIntern = null;
         String methodCode = null;
 
-        //if(classNode.superID != null){}MANCA EREDITA DEI METODI
-        //
-        //dispatchTables.forEach(l->{
-        //    ??come faccio a trovare la List<String> giusta???
-        //});
-        //
-        //
+        if (classNode.superID != null) {
+            int offsetSuperClass = classNode.superEntry.offset;
+            dispatchTableIntern = new ArrayList<>(dispatchTables.get(-offsetSuperClass - 2));
+        } else {
+            dispatchTableIntern = new ArrayList<String>();
+        }
 
         for (MethodNode method : classNode.methods) {
             visit(method);
-            dispatchTable.add(method.offset, method.label);
+            if (method.offset < dispatchTableIntern.size())
+                dispatchTableIntern.set(method.offset, method.label);
+            else
+                dispatchTableIntern.add(method.offset, method.label);
         }
 
-        dispatchTables.add(dispatchTable);
+        dispatchTables.add(dispatchTableIntern);
 
-        for (String label : dispatchTable) {
+        for (String label : dispatchTableIntern) {
             methodCode = nlJoin(methodCode,
                     // memorizzo ciascuna etichetta in hp
                     "push " + label, // metto la label sullo stack
@@ -342,11 +342,12 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         String declCode = null;
         String popDecl = null;
         String popParl = null;
+
         for (Node dec : methodNode.declist) {
             declCode = nlJoin(declCode, visit(dec));
             popDecl = nlJoin(popDecl, "pop");
         }
-        for (int i = 0; i < methodNode.parlist.size(); i++){
+        for (int i = 0; i < methodNode.parlist.size(); i++) {
             popParl = nlJoin(popParl, "pop");
         }
         String freshFunLabel = freshFunLabel();
@@ -377,10 +378,10 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         if (print) printNode(classCallNode, classCallNode.objectId + "." + classCallNode.methodId);
         String argCode = null;
         String getAR = null;
-        for (int i = classCallNode.arglist.size() - 1; i >= 0; i--){
+        for (int i = classCallNode.arglist.size() - 1; i >= 0; i--) {
             argCode = nlJoin(argCode, visit(classCallNode.arglist.get(i)));
         }
-        for (int i = 0; i < classCallNode.nl - classCallNode.entry.nl; i++){
+        for (int i = 0; i < classCallNode.nl - classCallNode.entry.nl; i++) {
             getAR = nlJoin(getAR, "lw");
         }
         return nlJoin(
@@ -407,10 +408,10 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         if (print) printNode(callNode, callNode.id);
         String argCode = null;
         String getAR = null;
-        for (int i = callNode.arglist.size() - 1; i >= 0; i--){
+        for (int i = callNode.arglist.size() - 1; i >= 0; i--) {
             argCode = nlJoin(argCode, visit(callNode.arglist.get(i)));
         }
-        for (int i = 0; i < callNode.nl - callNode.entry.nl; i++){
+        for (int i = 0; i < callNode.nl - callNode.entry.nl; i++) {
             getAR = nlJoin(getAR, "lw");
         }
         String code = nlJoin(
@@ -444,7 +445,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(EmptyNode emptyNode) {
         if (print) printNode(emptyNode);
-        return "push -1";
+        return "push -1"; //nessun object ha questo pointer
     }
 
     @Override

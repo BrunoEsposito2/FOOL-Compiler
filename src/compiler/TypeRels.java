@@ -11,7 +11,8 @@ import java.util.Objects;
 
 public class TypeRels {
 
-	private static final Map<String,String> superType = new HashMap<>();
+	protected static final Map<String,String> superTypeMap = new HashMap<>();//mappa nome classe sulla sua super()
+
 	// valuta se il tipo "a" e' <= al tipo "b", dove "a" e "b" sono tipi di base: IntTypeNode o BoolTypeNode
 	public static boolean isSubtype(TypeNode a, TypeNode b) {
 		if( ((a instanceof BoolTypeNode) && (b instanceof IntTypeNode))
@@ -19,6 +20,16 @@ public class TypeRels {
 				|| ((a instanceof IntTypeNode) && (b instanceof IntTypeNode))
 		){
 			return true;
+		}
+		// OOP
+		if (a instanceof EmptyTypeNode && b instanceof RefTypeNode){
+			return true;
+		}
+
+		if (a instanceof RefTypeNode && b instanceof RefTypeNode){
+			String idA = ((RefTypeNode) a).id;
+			String idB = ((RefTypeNode) b).id;
+			return superTypeMap.get(idA).equals(superTypeMap.get(idB));
 		}
 
 		if (a instanceof ArrowTypeNode && b instanceof ArrowTypeNode){
@@ -41,12 +52,6 @@ public class TypeRels {
 			}
 		}
 
-		if (a instanceof RefTypeNode && b instanceof RefTypeNode){
-			String idA = ((RefTypeNode) a).id;
-			String idB = ((RefTypeNode) b).id;
-			return superType.get(idA).equals(superType.get(idB));
-		}
-
 		if (a instanceof ArrowTypeNode && b instanceof RefTypeNode){
 			return true;
 		}
@@ -56,7 +61,7 @@ public class TypeRels {
 	}
 
 	public static void superType(RefTypeNode a, RefTypeNode b){
-		superType.put(a.id,b.id);//definisco gerarchia tra A e B
+		superTypeMap.put(a.id,b.id);//definisco gerarchia tra A e B
 	}
 
 }

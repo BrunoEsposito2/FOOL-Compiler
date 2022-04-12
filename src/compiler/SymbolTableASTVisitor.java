@@ -251,7 +251,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
     public Void visitNode(MethodNode methodNode) {
         if (print) printNode(methodNode);
 
-        var symbolTable = symTable.get(nestingLevel);
+        var symbolTable = symTable.get(nestingLevel); //prendo virtual table della classe
         var parameters = new ArrayList<TypeNode>();
         methodNode.parlist.stream().map(ParNode::getType).forEach(parameters::add);
         var methodType = new MethodTypeNode(new ArrowTypeNode(parameters, methodNode.retType));
@@ -271,7 +271,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
         methodNode.declist.forEach(this::visit);
         visit(methodNode.exp);
 
-        symTable.remove(nestingLevel--);
+        symTable.remove(nestingLevel--); //rimuovo hashmap corrente
         decOffset = previousNestingLevelDecOffset;
 
         return null;
@@ -327,14 +327,12 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
             if (!(classTable.containsKey(classNode.superID))) { // la classe padre non esiste
                 System.out.println("Super class id " + classNode.superID + " at line " + classNode.getLine() + " not declared");
                 stErrors++;
-            } // else{
+            }
             classNode.superEntry = symTable.get(0).get(classNode.superID); // uso della super classe
             // copio il tipo della classe padre
-//				ClassTypeNode superType = (ClassTypeNode) symTable.get(0).get(n.superID).type;
             ClassTypeNode superType = (ClassTypeNode) classNode.superEntry.type;
             type = new ClassTypeNode(new ArrayList<>(superType.allFields), new ArrayList<>(superType.allMethods));
             virtualTable = new HashMap<>(classTable.get(classNode.superID));
-            // }
         } else { // non eredita
             type = new ClassTypeNode(new ArrayList<>(), new ArrayList<>());
             virtualTable = new HashMap<>();
@@ -449,9 +447,6 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
     @Override
     public Void visitNode(ArrowTypeNode arrowTypeNode) {
         if (print) printNode(arrowTypeNode);
-
-        for (Node par : arrowTypeNode.parlist)
-            visit(par);
 		arrowTypeNode.parlist.forEach(this::visit);
 
 		return null;
