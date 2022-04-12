@@ -298,23 +298,21 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
             ClassTypeNode type = classNode.type;
             ClassTypeNode parentCT = (ClassTypeNode) classNode.superEntry.type;
 
-            if (classNode.type == classNode.superEntry.type) {
-                // controllo override dei campi
-                for (int i = 0; i < ((ClassTypeNode) classNode.superEntry.type).allFields.size(); i++) {
-                    if (!isSubtype(classNode.type.allFields.get(i), ((ClassTypeNode) classNode.superEntry.type).allFields.get(i))) {
-                        throw new TypeException(String.format("Wrong overriding type for field %s at line %d", classNode.fields.get(i).id,
-                                classNode.fields.get(i).getLine()), classNode.fields.get(i).getLine());
-                    }
-                }
-                // controllo override dei metodi
-                for (int i = 0; i < ((ClassTypeNode) classNode.superEntry.type).allMethods.size(); i++) {
-                    if (!isSubtype(classNode.type.allMethods.get(i), ((ClassTypeNode) classNode.superEntry.type).allMethods.get(i))) {
-                        throw new TypeException(String.format("Wrong overriding type for method %s at line %d", classNode.methods.get(i).id,
-                                classNode.methods.get(i).getLine()), classNode.methods.get(i).getLine());
-                    }
+            // controllo override dei campi
+            for (int i = 0; i < parentCT.allFields.size(); i++) {
+                if (!isSubtype(type.allFields.get(i), parentCT.allFields.get(i))) {
+                    throw new TypeException(String.format("Wrong overriding type for field %s at line %d", classNode.fields.get(i).id,
+                            classNode.fields.get(i).getLine()), classNode.fields.get(i).getLine());
                 }
             }
 
+            // controllo override dei metodi
+            for (int i = 0; i < parentCT.allMethods.size(); i++) {
+                if (!isSubtype(type.allMethods.get(i), parentCT.allMethods.get(i))) {
+                    throw new TypeException(String.format("Wrong overriding type for method %s at line %d", classNode.methods.get(i).id,
+                            classNode.methods.get(i).getLine()), classNode.methods.get(i).getLine());
+                }
+            }
         } else{
             for (MethodNode method : classNode.methods) {
                 visit(method);
