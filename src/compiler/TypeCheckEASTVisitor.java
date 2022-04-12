@@ -302,15 +302,15 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
                 // controllo override dei campi
                 for (int i = 0; i < ((ClassTypeNode) classNode.superEntry.type).allFields.size(); i++) {
                     if (!isSubtype(classNode.type.allFields.get(i), ((ClassTypeNode) classNode.superEntry.type).allFields.get(i))) {
-                        throw new TypeException(String.format("Wrong overriding type for field %s at line %d", classNode.type.allFields.get(i).toString(),
-                                classNode.type.allFields.get(i).getLine()), classNode.type.allFields.get(i).getLine());
+                        throw new TypeException(String.format("Wrong overriding type for field %s at line %d", classNode.fields.get(i).id,
+                                classNode.fields.get(i).getLine()), classNode.fields.get(i).getLine());
                     }
                 }
                 // controllo override dei metodi
                 for (int i = 0; i < ((ClassTypeNode) classNode.superEntry.type).allMethods.size(); i++) {
                     if (!isSubtype(classNode.type.allMethods.get(i), ((ClassTypeNode) classNode.superEntry.type).allMethods.get(i))) {
-                        throw new TypeException(String.format("Wrong overriding type for method %s at line %d", classNode.type.allMethods.get(i).toString(),
-                                classNode.type.allMethods.get(i).getLine()), classNode.type.allMethods.get(i).getLine());
+                        throw new TypeException(String.format("Wrong overriding type for method %s at line %d", classNode.methods.get(i).id,
+                                classNode.methods.get(i).getLine()), classNode.methods.get(i).getLine());
                     }
                 }
             }
