@@ -318,10 +318,10 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
     public Void visitNode(ClassNode classNode) {
         if (print) printNode(classNode);
 
-        localDeclaration = new HashSet<>();
+        localDeclaration = new HashSet<>(); //per la prima ottimizzazione (Rende possibile rilevare la ridefinizione(erronea) di campi e metodi con stesso nome effettuata all'interno della stessa classe)
         Map<String, STentry> symbolTable = symTable.get(0);
-        ClassTypeNode type = null;
-        Map<String, STentry> virtualTable = new HashMap<>();
+        ClassTypeNode type;
+        Map<String, STentry> virtualTable;
 
         if (classNode.superID != null) { //eredita
             if (!(classTable.containsKey(classNode.superID))) { // la classe padre non esiste
@@ -356,7 +356,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void,VoidException> {
         nestingLevel++;
 
         // campi
-        int fieldOffset = -(type.allFields.size()) - 1;
+        int fieldOffset = -(type.allFields.size()) - 1; //Seconda ottimizzazione (aggiungere campo "offset" a FieldNode)
         for (FieldNode field : classNode.fields) {
             if (localDeclaration.contains(field.id)) { // controllo dichiarazione multipla
                 System.out.println("Field id " + field.id + " at line " + classNode.getLine() + " already declared in this scope");
