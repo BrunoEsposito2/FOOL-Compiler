@@ -11,7 +11,7 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void,VoidException> {
 	@Override
 	public Void visitNode(ProgLetInNode n) {
 		printNode(n);
-		for (Node dec : n.declist) visit(dec);
+		n.declist.forEach(this::visit);
 		visit(n.exp);
 		return null;
 	}
@@ -27,8 +27,8 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void,VoidException> {
 	public Void visitNode(FunNode n) {
 		printNode(n,n.id);
 		visit(n.retType);
-		for (ParNode par : n.parlist) visit(par);
-		for (Node dec : n.declist) visit(dec);
+		n.parlist.forEach(this::visit);
+		n.declist.forEach(this::visit);
 		visit(n.exp);
 		return null;
 	}
@@ -147,7 +147,7 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void,VoidException> {
 	public Void visitNode(CallNode n) {
 		printNode(n,n.id+" at nestinglevel "+n.nl); 
 		visit(n.entry);
-		for (Node arg : n.arglist) visit(arg);
+		n.arglist.forEach(this::visit);
 		return null;
 	}
 
@@ -173,7 +173,7 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void,VoidException> {
 	@Override
 	public Void visitNode(ArrowTypeNode n){
 		printNode(n);
-		for (Node par: n.parlist) visit(par);
+		n.parlist.forEach(this::visit);
 		visit(n.ret,"->"); //marks return type
 		return null;
 	}
@@ -203,13 +203,9 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void,VoidException> {
 
 	@Override
 	public Void visitNode(ClassNode n) {
-		printNode(n, n.id );
-		for (Node field : n.fields){
-			visit(field);
-		}
-		for (Node method : n.methods){
-			visit(method);
-		}
+		printNode(n, n.id + (n.superID==null ? "" : "extends" + n.superID));
+		n.fields.forEach(this::visit);
+		n.methods.forEach(this::visit);
 		return null;
 	}
 

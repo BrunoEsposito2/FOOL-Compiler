@@ -1,12 +1,12 @@
 package compiler;
 
 import compiler.AST.*;
+import compiler.FOOLParser.*;
 import compiler.lib.DecNode;
 import compiler.lib.Node;
 import compiler.lib.TypeNode;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
-import compiler.FOOLParser.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,8 +54,10 @@ public class ASTGenerationSTVisitor extends compiler.FOOLBaseVisitor<Node> {
     public Node visitLetInProg(LetInProgContext c) {
         if (print) printVarAndProdName(c);
         List<DecNode> declist = new ArrayList<>();
-        for (CldecContext dec : c.cldec()) declist.add((DecNode) visit(dec));
-        for (DecContext dec : c.dec()) declist.add((DecNode) visit(dec));
+        for (CldecContext dec : c.cldec())
+            declist.add((DecNode) visit(dec));
+        for (DecContext dec : c.dec())
+            declist.add((DecNode) visit(dec));
         return new ProgLetInNode(declist, visit(c.exp()));
     }
 
@@ -77,7 +79,6 @@ public class ASTGenerationSTVisitor extends compiler.FOOLBaseVisitor<Node> {
             n.setLine(c.TIMES().getSymbol().getLine());        // setLine added
             return n;
         }
-
     }
 
     @Override
@@ -133,7 +134,8 @@ public class ASTGenerationSTVisitor extends compiler.FOOLBaseVisitor<Node> {
             parList.add(p);
         }
         List<DecNode> decList = new ArrayList<>();
-        for (DecContext dec : c.dec()) decList.add((DecNode) visit(dec));
+        for (DecContext dec : c.dec())
+            decList.add((DecNode) visit(dec));
         Node n = null;
         if (c.ID().size() > 0) { //non-incomplete ST
             n = new FunNode(c.ID(0).getText(), (TypeNode) visit(c.type(0)), parList, decList, visit(c.exp()));
@@ -230,7 +232,8 @@ public class ASTGenerationSTVisitor extends compiler.FOOLBaseVisitor<Node> {
     public Node visitCall(CallContext c) {
         if (print) printVarAndProdName(c);
         List<Node> arglist = new ArrayList<>();
-        for (ExpContext arg : c.exp()) arglist.add(visit(arg));
+        for (ExpContext arg : c.exp())
+            arglist.add(visit(arg));
         Node n = new CallNode(c.ID().getText(), arglist);
         n.setLine(c.ID().getSymbol().getLine());
         return n;
@@ -242,7 +245,7 @@ public class ASTGenerationSTVisitor extends compiler.FOOLBaseVisitor<Node> {
         if (print) printVarAndProdName(c);
 
         int start = 1;
-
+        if (c.EXTENDS() != null) start++;
         // fields
         List<FieldNode> fields = new ArrayList<>();
         for (int i = start, j = 0; i < c.ID().size(); i++, j++) {
@@ -253,12 +256,17 @@ public class ASTGenerationSTVisitor extends compiler.FOOLBaseVisitor<Node> {
 
         // methods
         List<MethodNode> methods = new ArrayList<>();
-        for (MethdecContext dec : c.methdec()) methods.add((MethodNode) visit(dec));
+        for (MethdecContext dec : c.methdec())
+            methods.add((MethodNode) visit(dec));
 
         // new class node
         Node n = null;
         if (c.ID().size() > 0) { //non-incomplete ST
-            n = new ClassNode(c.ID(0).getText(), fields, methods);
+            if (c.EXTENDS() != null && c.ID(1) != null) {
+                n = new ClassNode(c.ID(0).getText(), fields, methods, c.ID(1).getText());
+            } else {
+                n = new ClassNode(c.ID(0).getText(), fields, methods, null);
+            }
             n.setLine(c.CLASS().getSymbol().getLine());
         }
 
@@ -299,7 +307,7 @@ public class ASTGenerationSTVisitor extends compiler.FOOLBaseVisitor<Node> {
 
         // argomenti chiamata metodo
         List<Node> arglist = new ArrayList<>();
-        for (ExpContext arg : c.exp()){
+        for (ExpContext arg : c.exp()) {
             arglist.add(visit(arg));
         }
 
@@ -318,7 +326,8 @@ public class ASTGenerationSTVisitor extends compiler.FOOLBaseVisitor<Node> {
 
         // argomenti
         List<Node> arglist = new ArrayList<>();
-        for (ExpContext arg : c.exp()) arglist.add(visit(arg));
+        for (ExpContext arg : c.exp())
+            arglist.add(visit(arg));
 
         // new node
         Node n = new NewNode(c.ID().getText(), arglist);
